@@ -1,15 +1,9 @@
 plugins {
-    alias(libs.plugins.android.application)
+    alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
-}
-
-import java.util.Properties
-
-val localProps = Properties().apply {
-    rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use(::load)
 }
 
 val allAbis = listOf("arm64-v8a", "armeabi-v7a", "x86_64")
@@ -19,23 +13,8 @@ android {
     compileSdk = 36
     ndkVersion = "27.0.12077973"
 
-    if (localProps.containsKey("storeFile")) {
-        signingConfigs {
-            create("release") {
-                storeFile = file(localProps.getProperty("storeFile"))
-                storePassword = localProps.getProperty("storePassword")
-                keyAlias = localProps.getProperty("keyAlias")
-                keyPassword = localProps.getProperty("keyPassword")
-            }
-        }
-    }
-
     defaultConfig {
-        applicationId = "io.github.jqssun.airplay"
         minSdk = 24
-        targetSdk = 36
-        versionCode = 30
-        versionName = "0.0.30"
 
         externalNativeBuild {
             cmake {
@@ -58,7 +37,6 @@ android {
         release {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfigs.findByName("release")?.let { signingConfig = it }
             ndk { abiFilters += allAbis }
         }
         // debuggable build with HWASan (arm64) + UBSan in native code
